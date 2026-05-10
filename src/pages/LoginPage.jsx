@@ -1,168 +1,179 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Box, TextField, Button, Typography,
   InputAdornment, IconButton, Alert, CircularProgress,
-  Link, Fade,
+  Link, Fade, Chip, Divider,
 } from "@mui/material";
-import { createTheme, ThemeProvider, alpha } from "@mui/material/styles";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { ThemeProvider, alpha } from "@mui/material/styles";
+import Visibility          from "@mui/icons-material/Visibility";
+import VisibilityOff       from "@mui/icons-material/VisibilityOff";
+import InventoryOutlined   from "@mui/icons-material/InventoryOutlined";
+import LockOutlined        from "@mui/icons-material/LockOutlined";
+import PeopleOutlined      from "@mui/icons-material/PeopleOutlined";
+import AssessmentOutlined  from "@mui/icons-material/AssessmentOutlined";
+import StorefrontOutlined  from "@mui/icons-material/StorefrontOutlined";
 
-// ─── Configuração de Cores (Exatamente conforme solicitado) ───────────────────
-const C = {
-  canvas:    "#F4F3EF",   // off-white quente
-  navy:      "#0E2354",   // azul profundo
-  navyLight: "#1A3EDB",   // azul vivo
-  green:     "#22C55E",   // verde folha
-  ink:       "#1A1A2E",   // texto principal
-  muted:     "#7A7D8A",   // texto secundário
-  border:    "#DDDBD4",   // borda
-  fieldBg:   "#FAFAF7",   // fundo input
-};
+import { theme, C, FONT_IMPORT, gradientBtn } from "../theme";
+import { useAuth } from "../context/AuthContext";
 
-const theme = createTheme({
-  palette: {
-    primary: { main: C.navy },
-    background: { default: C.canvas },
-    text: { primary: C.ink, secondary: C.muted },
-  },
-  typography: {
-    fontFamily: "'DM Sans', sans-serif",
-  },
-  shape: { borderRadius: 8 },
-  components: {
-    MuiTextField: {
-      defaultProps: { variant: "outlined", fullWidth: true },
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: C.fieldBg,
-            "& fieldset": { borderColor: C.border },
-            "&:hover fieldset": { borderColor: "#BCBAB2" },
-            "&.Mui-focused fieldset": { borderColor: C.navy },
-          },
-          "& .MuiInputLabel-root": { fontSize: 14, color: C.muted },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: "none",
-          fontWeight: 600,
-          height: 52,
-          fontSize: 15,
-        },
-      },
-    },
-  },
+// ─── Schema Zod ──────────────────────────────────────────────────────────────
+const loginSchema = z.object({
+  email:    z.string().min(1, "E-mail obrigatório").email("E-mail inválido"),
+  password: z.string().min(1, "Senha obrigatória"),
 });
 
-// ─── Painel Lateral Unissex (Editorial Fashion) ──────────────────────────────
-function BrandPanel() {
+// ─── Roles com acesso ao sistema ─────────────────────────────────────────────
+const ACCESS_ROLES = [
+  { label: "Vendedores",      icon: StorefrontOutlined },
+  { label: "Gestores",        icon: PeopleOutlined },
+  { label: "Administradores", icon: AssessmentOutlined },
+];
+
+// ─── Painel Lateral ───────────────────────────────────────────────────────────
+function SystemPanel() {
   return (
     <Box sx={{
       display: { xs: "none", lg: "flex" },
-      flex: "0 0 45%",
+      flex: "0 0 42%",
       bgcolor: C.navy,
       color: "#fff",
       flexDirection: "column",
       justifyContent: "space-between",
-      p: 8,
+      px: { lg: 7, xl: 9 },
+      py: 8,
       position: "relative",
       overflow: "hidden",
     }}>
-      {/* Elementos Decorativos Abstratos */}
-      <Box sx={{
-        position: "absolute", top: "-10%", right: "-10%",
-        width: 400, height: 400, borderRadius: "50%",
-        background: `radial-gradient(circle, ${alpha(C.green, 0.15)} 0%, transparent 70%)`,
-      }} />
-      <Box sx={{
-        position: "absolute", bottom: "5%", left: "-5%",
-        width: 250, height: 250, border: `1px solid ${alpha("#fff", 0.1)}`,
-        borderRadius: "40px", transform: "rotate(15deg)",
-      }} />
+      {/* Elementos geométricos de fundo */}
+      <Box sx={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+        <Box sx={{
+          position: "absolute", width: 500, height: 500, borderRadius: "50%",
+          background: `radial-gradient(circle, ${alpha(C.greenLight, 0.08)} 0%, transparent 65%)`,
+          top: "-15%", right: "-15%",
+        }} />
+        <Box sx={{
+          position: "absolute", width: 280, height: 280,
+          border: `1px solid ${alpha("#fff", 0.06)}`,
+          borderRadius: "16px", transform: "rotate(20deg)",
+          bottom: "8%", left: "-8%",
+        }} />
+        <Box sx={{
+          position: "absolute", width: 120, height: 120,
+          border: `1px solid ${alpha("#fff", 0.04)}`,
+          borderRadius: "50%", bottom: "22%", right: "10%",
+        }} />
+      </Box>
 
-      {/* Logo */}
+      {/* Logo e sistema */}
       <Box sx={{ position: "relative", zIndex: 1 }}>
-        <Typography sx={{ fontFamily: "'DM Serif Display', serif", fontSize: 32 }}>
-          Plus.
-        </Typography>
-        <Typography sx={{ fontSize: 12, opacity: 0.6, letterSpacing: 3, textTransform: "uppercase" }}>
-          Moda sem rótulos
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+          <Box sx={{
+            width: 36, height: 36, borderRadius: "10px",
+            bgcolor: alpha("#fff", 0.1),
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <InventoryOutlined sx={{ fontSize: 20, color: C.greenLight }} />
+          </Box>
+          <Typography sx={{ fontWeight: 700, fontSize: 18, letterSpacing: "-0.01em" }}>
+            Plus Gestão
+          </Typography>
+        </Box>
+        <Typography sx={{ fontSize: 11, color: alpha("#fff", 0.45), letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Sistema de Gerenciamento de Estoque
         </Typography>
       </Box>
 
-      {/* Conteúdo Central */}
+      {/* Conteúdo central */}
       <Box sx={{ position: "relative", zIndex: 1 }}>
         <Typography sx={{
-          fontFamily: "'DM Serif Display', serif",
-          fontSize: { lg: 42, xl: 52 },
-          lineHeight: 1.1,
-          mb: 3
+          fontSize: { lg: 30, xl: 36 },
+          fontWeight: 700,
+          lineHeight: 1.25,
+          letterSpacing: "-0.02em",
+          mb: 2,
         }}>
-          Vista sua <br /> 
-          <span style={{ fontStyle: "italic", color: C.green }}>autenticidade.</span>
+          Controle total do seu inventário.
         </Typography>
-        
-        <Box sx={{ width: 60, height: 4, bgcolor: C.green, mb: 4, borderRadius: 2 }} />
-        
-        <Typography sx={{ fontSize: 16, opacity: 0.8, maxWidth: 380, lineHeight: 1.6 }}>
-          Curadoria exclusiva plus size unissex. Modelagens pensadas para corpos reais, do conforto do dia a dia à atitude das ruas.
+
+        <Box sx={{ width: 40, height: 3, bgcolor: C.greenLight, borderRadius: 2, mb: 3 }} />
+
+        <Typography sx={{ fontSize: 14, color: alpha("#fff", 0.65), lineHeight: 1.7, mb: 4, maxWidth: 340 }}>
+          Gerencie produtos, movimentações de estoque, pedidos e relatórios em um único painel seguro e eficiente.
         </Typography>
+
+        {/* Acesso restrito */}
+        <Box sx={{
+          p: 2, borderRadius: 2,
+          border: `1px solid ${alpha("#fff", 0.1)}`,
+          bgcolor: alpha("#fff", 0.04),
+        }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+            <LockOutlined sx={{ fontSize: 14, color: alpha("#fff", 0.5) }} />
+            <Typography sx={{ fontSize: 11, color: alpha("#fff", 0.5), letterSpacing: "0.1em", textTransform: "uppercase" }}>
+              Acesso autorizado para
+            </Typography>
+          </Box>
+          {ACCESS_ROLES.map(({ label, icon: Icon }) => (
+            <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+              <Icon sx={{ fontSize: 16, color: C.greenLight }} />
+              <Typography sx={{ fontSize: 13, color: alpha("#fff", 0.75) }}>{label}</Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
-      {/* Footer do Painel */}
-      <Box sx={{ position: "relative", zIndex: 1, display: "flex", gap: 3 }}>
-        <Typography sx={{ fontSize: 12, opacity: 0.4 }}>INSTAGRAM</Typography>
-        <Typography sx={{ fontSize: 12, opacity: 0.4 }}>FACEBOOK</Typography>
-        <Typography sx={{ fontSize: 12, opacity: 0.4 }}>© {new Date().getFullYear()}</Typography>
+      {/* Footer */}
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        <Typography sx={{ fontSize: 11, color: alpha("#fff", 0.25), letterSpacing: "0.08em" }}>
+          © {new Date().getFullYear()} Plus Store — Sistema Interno
+        </Typography>
       </Box>
     </Box>
   );
 }
 
-// ─── Componente Principal ─────────────────────────────────────────────────────
+// ─── LoginPage ────────────────────────────────────────────────────────────────
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [mounted, setMounted] = useState(false);
+  const navigate    = useNavigate();
+  const { login }   = useAuth();
+  const [showPwd, setShowPwd]   = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [mounted, setMounted]   = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm({
+    resolver:      zodResolver(loginSchema),
+    mode:          "all",
+    defaultValues: { email: "", password: "" },
+  });
 
   useEffect(() => { setMounted(true); }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    
-    setLoading(true);
-    setError(null);
-
+  const onSubmit = async ({ email, password }) => {
+    setApiError(null);
     try {
-      // Simulação de chamada API
-      // const res = await fetch("/api/login", { ... });
-      console.log("Login com:", email, password);
+      await login(email, password);
+      navigate("/");
     } catch (err) {
-      setError("E-mail ou senha incorretos.");
-    } finally {
-      setLoading(false);
+      setApiError(err.message);
     }
   };
 
   return (
     <ThemeProvider theme={theme}>
-      {/* Import das fontes direto no componente para garantir consistência */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap');`}</style>
+      <style>{FONT_IMPORT}</style>
 
       <Box sx={{ minHeight: "100vh", display: "flex", bgcolor: C.canvas }}>
-        
-        <BrandPanel />
+        <SystemPanel />
 
+        {/* Área do formulário */}
         <Box sx={{
           flex: 1,
           display: "flex",
@@ -170,62 +181,104 @@ export default function LoginPage() {
           justifyContent: "center",
           alignItems: "center",
           px: { xs: 3, sm: 8 },
+          bgcolor: C.canvas,
         }}>
-          <Fade in={mounted} timeout={800}>
+          <Fade in={mounted} timeout={600}>
             <Box sx={{ width: "100%", maxWidth: 400 }}>
-              
-              {/* Logo Mobile */}
-              <Box sx={{ display: { xs: "block", lg: "none" }, mb: 4 }}>
-                <Typography sx={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: C.navy }}>Plus.</Typography>
+
+              {/* Logo mobile */}
+              <Box sx={{ display: { xs: "flex", lg: "none" }, alignItems: "center", gap: 1.5, mb: 6 }}>
+                <Box sx={{
+                  width: 36, height: 36, borderRadius: "10px", bgcolor: C.navy,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <InventoryOutlined sx={{ fontSize: 20, color: C.greenLight }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: 16, color: C.ink, lineHeight: 1 }}>
+                    Plus Gestão
+                  </Typography>
+                  <Typography sx={{ fontSize: 10, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    Gerenciamento de Estoque
+                  </Typography>
+                </Box>
               </Box>
 
-              <Typography sx={{ 
-                fontFamily: "'DM Serif Display', serif", 
-                fontSize: 32, 
-                color: C.ink, 
-                mb: 1 
-              }}>
-                Bem-vindo(a) de volta.
+              {/* Cabeçalho */}
+              <Typography sx={{ fontSize: 24, fontWeight: 700, color: C.ink, mb: 0.5, letterSpacing: "-0.02em" }}>
+                Acessar o sistema
               </Typography>
-              
-              <Typography sx={{ color: C.muted, mb: 5, fontSize: 15 }}>
-                Acesse sua conta para continuar suas compras.
+              <Typography sx={{ color: C.muted, mb: 5, fontSize: 14 }}>
+                Use suas credenciais corporativas para entrar.
               </Typography>
 
-              {error && (
-                <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>
+              {apiError && (
+                <Fade in>
+                  <Alert
+                    severity="error"
+                    onClose={() => setApiError(null)}
+                    sx={{ mb: 3, borderRadius: 2, fontSize: 13 }}
+                  >
+                    {apiError}
+                  </Alert>
+                </Fade>
               )}
 
-              <Box component="form" onSubmit={handleLogin}>
-                <TextField
-                  label="E-mail"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  sx={{ mb: 3 }}
-                  required
+              <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="E-mail corporativo"
+                      type="email"
+                      autoComplete="email"
+                      error={!!errors.email}
+                      helperText={errors.email?.message || " "}
+                      sx={{ mb: 1 }}
+                    />
+                  )}
                 />
 
-                <TextField
-                  label="Senha"
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPwd(!showPwd)} edge="end">
-                          {showPwd ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 1 }}
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Senha"
+                      type={showPwd ? "text" : "password"}
+                      autoComplete="current-password"
+                      error={!!errors.password}
+                      helperText={errors.password?.message || " "}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPwd(v => !v)}
+                                edge="end"
+                                aria-label={showPwd ? "Ocultar senha" : "Mostrar senha"}
+                              >
+                                {showPwd ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                      sx={{ mb: 1 }}
+                    />
+                  )}
                 />
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 4 }}>
-                  <Link href="#" underline="none" sx={{ fontSize: 13, color: C.navyLight, fontWeight: 500 }}>
+                  <Link
+                    href="#"
+                    underline="none"
+                    tabIndex={-1}
+                    sx={{ fontSize: 13, color: C.navyLight, fontWeight: 500 }}
+                  >
                     Esqueceu sua senha?
                   </Link>
                 </Box>
@@ -235,30 +288,41 @@ export default function LoginPage() {
                   variant="contained"
                   fullWidth
                   disableElevation
-                  disabled={loading}
-                  sx={{
-                    background: `linear-gradient(90deg, ${C.navy} 0%, ${C.navyLight} 100%)`,
-                    color: "#fff",
-                    boxShadow: `0 4px 12px ${alpha(C.navy, 0.2)}`,
-                    "&:hover": {
-                      filter: "brightness(1.1)",
-                    }
-                  }}
+                  disabled={isSubmitting || !isValid}
+                  sx={gradientBtn()}
                 >
-                  {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Entrar na conta"}
+                  {isSubmitting
+                    ? <CircularProgress size={22} sx={{ color: "#fff" }} />
+                    : "Entrar"}
                 </Button>
               </Box>
 
-              <Box sx={{ mt: 5, pt: 3, borderTop: `1px solid ${C.border}`, textAlign: "center" }}>
-                <Typography sx={{ color: C.muted, fontSize: 14 }}>
-                  Ainda não tem uma conta?{" "}
-                  <Link 
-                    href="#" 
-                    onClick={() => navigate("/signup")}
-                    sx={{ color: C.navy, fontWeight: 700, underline: "none", cursor: "pointer", ml: 1 }}
+              <Divider sx={{ my: 4, borderColor: C.border }} />
+
+              {/* Link criar conta + aviso de acesso restrito */}
+              <Box sx={{ textAlign: "center", mb: 3 }}>
+                <Typography sx={{ color: C.muted, fontSize: 13 }}>
+                  Administrador?{" "}
+                  <Link
+                    href="#"
+                    underline="none"
+                    onClick={(e) => { e.preventDefault(); navigate("/signup"); }}
+                    sx={{ color: C.navyLight, fontWeight: 600, "&:hover": { color: C.navy } }}
                   >
-                    Cadastre-se grátis
+                    Criar conta de colaborador
                   </Link>
+                </Typography>
+              </Box>
+
+              <Box sx={{
+                display: "flex", alignItems: "flex-start", gap: 1.5,
+                p: 2, borderRadius: 2,
+                bgcolor: C.badge,
+                border: `1px solid ${alpha(C.navyLight, 0.15)}`,
+              }}>
+                <LockOutlined sx={{ fontSize: 16, color: C.navyLight, mt: 0.2, flexShrink: 0 }} />
+                <Typography sx={{ fontSize: 12, color: C.navyMid, lineHeight: 1.6 }}>
+                  <strong>Acesso restrito.</strong> Exclusivo para colaboradores autorizados. Em caso de dúvidas, contate o administrador.
                 </Typography>
               </Box>
 
