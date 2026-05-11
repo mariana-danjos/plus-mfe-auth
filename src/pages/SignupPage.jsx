@@ -38,7 +38,6 @@ const signupSchema = z
                        required_error: "Selecione um cargo",
                        invalid_type_error: "Cargo inválido",
                      }),
-    department:      z.string().optional(),
     password:        z.string()
                        .min(8,            "Mínimo 8 caracteres")
                        .regex(/[A-Z]/,    "Precisa de uma letra maiúscula")
@@ -269,7 +268,7 @@ export default function SignupPage() {
     resolver:      zodResolver(signupSchema),
     mode:          "all",
     defaultValues: {
-      fullName: "", email: "", role: "", department: "",
+      fullName: "", email: "", role: "",
       password: "", passwordConfirm: "",
     },
   });
@@ -283,10 +282,10 @@ export default function SignupPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const onSubmit = async ({ fullName, email, role, department, password }) => {
+  const onSubmit = async ({ fullName, email, role, password }) => {
     setApiError(null);
     try {
-      await signup({ fullName, email, role, department: department || null, password });
+      await signup({ fullName, email, role, password });
       setSuccess(true);
     } catch (err) {
       setApiError(err.message);
@@ -433,21 +432,6 @@ export default function SignupPage() {
                             {errors.role?.message || " "}
                           </FormHelperText>
                         </FormControl>
-                      )}
-                    />
-
-                    {/* Departamento (opcional) */}
-                    <Controller
-                      name="department"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Departamento (opcional)"
-                          autoComplete="organization"
-                          helperText=" "
-                          sx={{ mb: 1 }}
-                        />
                       )}
                     />
 
