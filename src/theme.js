@@ -20,12 +20,20 @@ export const theme = createTheme({
   palette: {
     mode: "light",
     primary:    { main: C.navy, contrastText: "#fff" },
+    secondary:  { main: C.green, light: C.greenLight, contrastText: "#fff" },
     error:      { main: C.error },
     success:    { main: C.green },
     background: { default: C.canvas, paper: C.fieldBg },
     text:       { primary: C.ink, secondary: C.muted },
   },
-  typography: { fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" },
+  typography: {
+    fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    h1: { fontWeight: 700, fontSize: "2rem", lineHeight: 1.2 },
+    h2: { fontWeight: 700, fontSize: "1.5rem", lineHeight: 1.25 },
+    body1: { fontSize: "0.875rem", lineHeight: 1.6 },
+    body2: { fontSize: "0.8125rem", lineHeight: 1.6 },
+    button: { fontWeight: 600, textTransform: "none" },
+  },
   shape: { borderRadius: 8 },
   components: {
     MuiTextField: {

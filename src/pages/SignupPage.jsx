@@ -7,9 +7,9 @@ import {
   Box, TextField, Button, Typography,
   InputAdornment, IconButton, Alert, CircularProgress,
   Link, Fade, Grow, Select, MenuItem, FormControl,
-  InputLabel, FormHelperText, Tooltip, Chip,
+  InputLabel, FormHelperText, Tooltip, Chip, Paper,
 } from "@mui/material";
-import { ThemeProvider, alpha } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import Visibility          from "@mui/icons-material/Visibility";
 import VisibilityOff       from "@mui/icons-material/VisibilityOff";
 import CheckCircle         from "@mui/icons-material/CheckCircle";
@@ -19,7 +19,7 @@ import InventoryOutlined   from "@mui/icons-material/InventoryOutlined";
 import TaskAltOutlined     from "@mui/icons-material/TaskAltOutlined";
 import BadgeOutlined       from "@mui/icons-material/BadgeOutlined";
 
-import { theme, C, FONT_IMPORT, gradientBtn } from "../theme";
+import { C, gradientBtn } from "../theme";
 import { useAuth } from "../context/AuthContext";
 
 // ─── Opções de cargo ──────────────────────────────────────────────────────────
@@ -217,7 +217,7 @@ function SystemPanel() {
           fontSize: { lg: 28, xl: 34 }, fontWeight: 700, color: "#fff",
           lineHeight: 1.25, letterSpacing: "-0.02em", mb: 2,
         }}>
-          Adicione um novo colaborador ao sistema.
+          Crie sua conta de colaborador.
         </Typography>
 
         <Box sx={{ width: 40, height: 3, bgcolor: C.greenLight, borderRadius: 2, mb: 3 }} />
@@ -299,20 +299,25 @@ export default function SignupPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <style>{FONT_IMPORT}</style>
-      <Box sx={{ minHeight: "100vh", display: "flex", bgcolor: C.canvas }}>
+    <Box sx={{ minHeight: "100vh", display: "flex", bgcolor: C.canvas }}>
 
-        <SystemPanel />
+      <SystemPanel />
 
-        <Box sx={{
-          flex: 1, display: "flex", flexDirection: "column",
-          justifyContent: "center", alignItems: "center",
-          px: { xs: 3, sm: 6 }, py: 6,
-          overflowY: "auto",
-        }}>
-          <Fade in={mounted} timeout={600}>
-            <Box sx={{ width: "100%", maxWidth: 400 }}>
+      <Box sx={{
+        flex: 1, display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "center",
+        px: { xs: 2, sm: 6 }, py: 6,
+        overflowY: "auto",
+      }}>
+        <Fade in={mounted} timeout={600}>
+          <Paper elevation={0} sx={{
+            width: "100%",
+            maxWidth: 440,
+            p: { xs: 3, sm: 4 },
+            borderRadius: 2,
+            border: `1px solid ${C.border}`,
+            boxShadow: `0 16px 40px ${alpha(C.navy, 0.08)}`,
+          }}>
 
               {/* Logo mobile */}
               <Box sx={{ display: { xs: "flex", lg: "none" }, alignItems: "center", gap: 1.5, mb: 5 }}>
@@ -551,10 +556,9 @@ export default function SignupPage() {
                   </Typography>
                 </>
               )}
-            </Box>
-          </Fade>
-        </Box>
+          </Paper>
+        </Fade>
       </Box>
-    </ThemeProvider>
+    </Box>
   );
 }

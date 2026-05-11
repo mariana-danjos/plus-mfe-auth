@@ -6,9 +6,9 @@ import { z } from "zod";
 import {
   Box, TextField, Button, Typography,
   InputAdornment, IconButton, Alert, CircularProgress,
-  Link, Fade, Chip, Divider,
+  Link, Fade, Chip, Divider, Paper,
 } from "@mui/material";
-import { ThemeProvider, alpha } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import Visibility          from "@mui/icons-material/Visibility";
 import VisibilityOff       from "@mui/icons-material/VisibilityOff";
 import InventoryOutlined   from "@mui/icons-material/InventoryOutlined";
@@ -17,7 +17,7 @@ import PeopleOutlined      from "@mui/icons-material/PeopleOutlined";
 import AssessmentOutlined  from "@mui/icons-material/AssessmentOutlined";
 import StorefrontOutlined  from "@mui/icons-material/StorefrontOutlined";
 
-import { theme, C, FONT_IMPORT, gradientBtn } from "../theme";
+import { C, gradientBtn } from "../theme";
 import { useAuth } from "../context/AuthContext";
 
 // ─── Schema Zod ──────────────────────────────────────────────────────────────
@@ -167,24 +167,29 @@ export default function LoginPage() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <style>{FONT_IMPORT}</style>
+    <Box sx={{ minHeight: "100vh", display: "flex", bgcolor: C.canvas }}>
+      <SystemPanel />
 
-      <Box sx={{ minHeight: "100vh", display: "flex", bgcolor: C.canvas }}>
-        <SystemPanel />
-
-        {/* Área do formulário */}
-        <Box sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          px: { xs: 3, sm: 8 },
-          bgcolor: C.canvas,
-        }}>
-          <Fade in={mounted} timeout={600}>
-            <Box sx={{ width: "100%", maxWidth: 400 }}>
+      {/* Área do formulário */}
+      <Box sx={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        px: { xs: 2, sm: 8 },
+        py: { xs: 4, sm: 6 },
+        bgcolor: C.canvas,
+      }}>
+        <Fade in={mounted} timeout={600}>
+          <Paper elevation={0} sx={{
+            width: "100%",
+            maxWidth: 440,
+            p: { xs: 3, sm: 4 },
+            borderRadius: 2,
+            border: `1px solid ${C.border}`,
+            boxShadow: `0 16px 40px ${alpha(C.navy, 0.08)}`,
+          }}>
 
               {/* Logo mobile */}
               <Box sx={{ display: { xs: "flex", lg: "none" }, alignItems: "center", gap: 1.5, mb: 6 }}>
@@ -326,10 +331,9 @@ export default function LoginPage() {
                 </Typography>
               </Box>
 
-            </Box>
-          </Fade>
-        </Box>
+          </Paper>
+        </Fade>
       </Box>
-    </ThemeProvider>
+    </Box>
   );
 }
