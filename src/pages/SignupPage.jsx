@@ -26,7 +26,7 @@ import { useAuth } from "../context/AuthContext";
 export const ROLE_OPTIONS = [
   { value: "vendedor",       label: "Vendedor",       desc: "Acesso a vendas e consulta de estoque" },
   { value: "gestor",         label: "Gestor",         desc: "Acesso a relatórios e gerenciamento" },
-  { value: "administrador",  label: "Administrador",  desc: "Acesso completo ao sistema" },
+  { value: "admin",          label: "Administrador",  desc: "Acesso completo ao sistema" },
 ];
 
 // ─── Schema Zod ──────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ const signupSchema = z
   .object({
     name:            z.string().min(2, "Mínimo 2 caracteres"),
     email:           z.string().min(1, "E-mail obrigatório").email("E-mail inválido"),
-    role:            z.enum(["vendedor", "gestor", "administrador"], {
+    role:            z.enum(["vendedor", "gestor", "admin"], {
                        required_error: "Selecione um cargo",
                        invalid_type_error: "Cargo inválido",
                      }),
