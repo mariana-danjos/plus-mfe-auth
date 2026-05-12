@@ -12,6 +12,7 @@ export default defineConfig({
         "./LoginPage":    "./src/pages/LoginPage",
         "./SignupPage":   "./src/pages/SignupPage",
         "./AuthContext":  "./src/context/AuthContext",
+        "./theme":        "./src/theme",
       },
       shared: [
         "react",

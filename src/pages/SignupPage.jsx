@@ -26,15 +26,15 @@ import { useAuth } from "../context/AuthContext";
 export const ROLE_OPTIONS = [
   { value: "vendedor",       label: "Vendedor",       desc: "Acesso a vendas e consulta de estoque" },
   { value: "gestor",         label: "Gestor",         desc: "Acesso a relatórios e gerenciamento" },
-  { value: "administrador",  label: "Administrador",  desc: "Acesso completo ao sistema" },
+  { value: "admin",          label: "Administrador",  desc: "Acesso completo ao sistema" },
 ];
 
 // ─── Schema Zod ──────────────────────────────────────────────────────────────
 const signupSchema = z
   .object({
-    fullName:        z.string().min(3, "Mínimo 3 caracteres"),
+    name:            z.string().min(2, "Mínimo 2 caracteres"),
     email:           z.string().min(1, "E-mail obrigatório").email("E-mail inválido"),
-    role:            z.enum(["vendedor", "gestor", "administrador"], {
+    role:            z.enum(["vendedor", "gestor", "admin"], {
                        required_error: "Selecione um cargo",
                        invalid_type_error: "Cargo inválido",
                      }),
@@ -105,7 +105,7 @@ function PasswordStrength({ password }) {
 }
 
 // ─── Tela de Sucesso ──────────────────────────────────────────────────────────
-function SuccessScreen({ fullName, email, role, navigate }) {
+function SuccessScreen({ name, email, role, navigate }) {
   const roleLabel = ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role;
   return (
     <Grow in timeout={400}>
@@ -268,7 +268,7 @@ export default function SignupPage() {
     resolver:      zodResolver(signupSchema),
     mode:          "all",
     defaultValues: {
-      fullName: "", email: "", role: "",
+      name: "", email: "", role: "",
       password: "", passwordConfirm: "",
     },
   });
@@ -282,10 +282,16 @@ export default function SignupPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const onSubmit = async ({ fullName, email, role, password }) => {
+  const onSubmit = async ({ name, email, role, password, passwordConfirm }) => {
     setApiError(null);
     try {
-      await signup({ fullName, email, role, password });
+      await signup({
+        name,
+        email,
+        password,
+        password_confirm: passwordConfirm,
+        role,  // backend ignora hoje — mantido até feature de atribuição-no-signup
+      });
       setSuccess(true);
     } catch (err) {
       setApiError(err.message);
@@ -336,7 +342,7 @@ export default function SignupPage() {
 
               {success ? (
                 <SuccessScreen
-                  fullName={watch("fullName")}
+                  name={watch("name")}
                   email={watch("email")}
                   role={roleValue}
                   navigate={(path) => {
@@ -364,15 +370,15 @@ export default function SignupPage() {
                   <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
 
                     <Controller
-                      name="fullName"
+                      name="name"
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
                           label="Nome completo"
                           autoComplete="name"
-                          error={!!errors.fullName}
-                          helperText={errors.fullName?.message || " "}
+                          error={!!errors.name}
+                          helperText={errors.name?.message || " "}
                           sx={{ mb: 1 }}
                         />
                       )}

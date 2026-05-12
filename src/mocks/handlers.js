@@ -13,14 +13,20 @@ export const handlers = [
         user: { id: "1", email, name: "User Test" },
       });
     }
-    return HttpResponse.json({ error: "E-mail ou senha incorretos." }, { status: 401 });
+    return HttpResponse.json(
+      { error: { code: "INVALID_CREDENTIALS", message: "E-mail ou senha incorretos." } },
+      { status: 401 },
+    );
   }),
 
   // Signup
   http.post(`${API}/auth/signup`, async ({ request }) => {
     const { email } = await request.json();
     if (email === "duplicate@plus.com") {
-      return HttpResponse.json({ error: "E-mail já cadastrado." }, { status: 409 });
+      return HttpResponse.json(
+        { error: { code: "EMAIL_TAKEN", message: "E-mail já cadastrado." } },
+        { status: 409 },
+      );
     }
     return HttpResponse.json({
       token: "mock.jwt.token",
