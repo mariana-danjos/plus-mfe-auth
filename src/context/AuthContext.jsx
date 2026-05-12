@@ -74,8 +74,10 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) {
-      const { error: msg } = await res.json().catch(() => ({}));
-      const error = msg || (res.status === 401 ? "E-mail ou senha incorretos." : "Erro ao entrar.");
+      const body = await res.json().catch(() => ({}));
+      const apiMsg = typeof body.error === "string" ? body.error : body.error?.message;
+      const fallback = res.status === 401 ? "E-mail ou senha incorretos." : "Erro ao entrar.";
+      const error = apiMsg || fallback;
       setState(s => ({ ...s, loading: false, error }));
       throw new Error(error);
     }
@@ -94,8 +96,10 @@ export function AuthProvider({ children }) {
       body: JSON.stringify(data),
     });
     if (!res.ok) {
-      const { error: msg } = await res.json().catch(() => ({}));
-      const error = msg || (res.status === 409 ? "E-mail já cadastrado." : "Erro ao criar conta.");
+      const body = await res.json().catch(() => ({}));
+      const apiMsg = typeof body.error === "string" ? body.error : body.error?.message;
+      const fallback = res.status === 409 ? "E-mail já cadastrado." : "Erro ao criar conta.";
+      const error = apiMsg || fallback;
       setState(s => ({ ...s, loading: false, error }));
       throw new Error(error);
     }
