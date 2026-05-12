@@ -6,7 +6,7 @@ import { z } from "zod";
 import {
   Box, TextField, Button, Typography,
   InputAdornment, IconButton, Alert, CircularProgress,
-  Link, Fade, Chip, Divider, Paper,
+  Link, Fade, Divider, Paper,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import Visibility          from "@mui/icons-material/Visibility";

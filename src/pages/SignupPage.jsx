@@ -105,7 +105,7 @@ function PasswordStrength({ password }) {
 }
 
 // ─── Tela de Sucesso ──────────────────────────────────────────────────────────
-function SuccessScreen({ name, email, role, navigate }) {
+function SuccessScreen({ _name, email, role, navigate }) {
   const roleLabel = ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role;
   return (
     <Grow in timeout={400}>
