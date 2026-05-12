@@ -24,14 +24,14 @@ const getConfirm    = () => screen.getByLabelText("Confirmar senha");
 
 const fillValidForm = async (user, overrides = {}) => {
   const vals = {
-    fullName:        "Ana Gestora",
+    name:            "Ana Gestora",
     email:           "ana@plus.com",
     roleLabel:       "Gestor",
     password:        "Senh@Forte1",
     passwordConfirm: "Senh@Forte1",
     ...overrides,
   };
-  await user.type(getName(), vals.fullName);
+  await user.type(getName(), vals.name);
   await user.type(getEmail(), vals.email);
 
   await user.click(getRoleSelect());
@@ -47,7 +47,6 @@ describe("SignupPage — Criar Conta de Colaborador", () => {
     expect(getName()).toBeInTheDocument();
     expect(getEmail()).toBeInTheDocument();
     expect(getRoleSelect()).toBeInTheDocument();
-    expect(screen.getByLabelText(/departamento/i)).toBeInTheDocument();
     expect(getPassword()).toBeInTheDocument();
     expect(getConfirm()).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /criar conta/i })).toBeInTheDocument();
@@ -58,13 +57,13 @@ describe("SignupPage — Criar Conta de Colaborador", () => {
     expect(screen.getByRole("button", { name: /criar conta/i })).toBeDisabled();
   });
 
-  it("exibe erro para nome menor que 3 caracteres", async () => {
+  it("exibe erro para nome menor que 2 caracteres", async () => {
     const user = userEvent.setup();
     renderSignup();
-    await user.type(getName(), "Ab");
+    await user.type(getName(), "A");
     await user.tab();
     await waitFor(() => {
-      expect(screen.getByText(/mínimo 3 caracteres/i)).toBeInTheDocument();
+      expect(screen.getByText(/mínimo 2 caracteres/i)).toBeInTheDocument();
     });
   });
 
@@ -127,6 +126,36 @@ describe("SignupPage — Criar Conta de Colaborador", () => {
     });
     // A tela de sucesso mostra o cargo como Chip; usa getAllByText por conta do painel lateral
     expect(screen.getAllByText(/gestor/i).length).toBeGreaterThan(0);
+  });
+
+  it("envia name e password_confirm no body do signup", async () => {
+    let receivedBody = null;
+    server.use(
+      http.post("http://localhost:3001/auth/signup", async ({ request }) => {
+        receivedBody = await request.json();
+        return HttpResponse.json({
+          token: "t",
+          refreshToken: "r",
+          user: { id: "1", email: receivedBody.email, name: receivedBody.name },
+        });
+      }),
+    );
+
+    const user = userEvent.setup();
+    renderSignup();
+    await fillValidForm(user);
+    const btn = screen.getByRole("button", { name: /criar conta/i });
+    await waitFor(() => expect(btn).toBeEnabled());
+    await user.click(btn);
+
+    await waitFor(() => {
+      expect(receivedBody).toEqual(expect.objectContaining({
+        name: "Ana Gestora",
+        email: "ana@plus.com",
+        password: "Senh@Forte1",
+        password_confirm: "Senh@Forte1",
+      }));
+    });
   });
 
   it("exibe erro 'E-mail já cadastrado' quando API retorna 409", async () => {
