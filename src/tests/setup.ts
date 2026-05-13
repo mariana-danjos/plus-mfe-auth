@@ -6,8 +6,8 @@ const storage = (() => {
   let data: Record<string, string> = {};
   return {
     getItem: (key: string): string | null => (key in data ? data[key] : null),
-    setItem: (key: string, value: unknown): void => {
-      data[key] = String(value);
+    setItem: (key: string, value: string): void => {
+      data[key] = value;
     },
     removeItem: (key: string): void => {
       delete data[key];
