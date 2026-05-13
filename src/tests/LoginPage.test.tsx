@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,7 +8,7 @@ import { server } from "../mocks/server";
 import { AuthProvider } from "../context/AuthContext";
 import LoginPage from "../pages/LoginPage";
 
-const Wrapper = ({ children }) => (
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
     <MemoryRouter initialEntries={["/login"]}>{children}</MemoryRouter>
   </AuthProvider>

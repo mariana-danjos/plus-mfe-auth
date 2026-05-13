@@ -26,6 +26,8 @@ const loginSchema = z.object({
   password: z.string().min(1, "Senha obrigatória"),
 });
 
+type LoginFormData = z.infer<typeof loginSchema>;
+
 // ─── Roles com acesso ao sistema ─────────────────────────────────────────────
 const ACCESS_ROLES = [
   { label: "Vendedores",      icon: StorefrontOutlined },
@@ -140,15 +142,15 @@ function SystemPanel() {
 export default function LoginPage() {
   const navigate    = useNavigate();
   const { login }   = useAuth();
-  const [showPwd, setShowPwd]   = useState(false);
-  const [apiError, setApiError] = useState(null);
-  const [mounted, setMounted]   = useState(false);
+  const [showPwd, setShowPwd]   = useState<boolean>(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [mounted, setMounted]   = useState<boolean>(false);
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting, isValid },
-  } = useForm({
+  } = useForm<LoginFormData>({
     resolver:      zodResolver(loginSchema),
     mode:          "all",
     defaultValues: { email: "", password: "" },
@@ -156,13 +158,13 @@ export default function LoginPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const onSubmit = async ({ email, password }) => {
+  const onSubmit = async ({ email, password }: LoginFormData) => {
     setApiError(null);
     try {
       await login(email, password);
       navigate("/");
     } catch (err) {
-      setApiError(err.message);
+      setApiError(err instanceof Error ? err.message : "Erro ao entrar.");
     }
   };
 
