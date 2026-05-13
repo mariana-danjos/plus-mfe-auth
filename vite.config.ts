@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import federation from "@originjs/vite-plugin-federation";
 
@@ -41,8 +41,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov", "html"],
-      include: ["src/**/*.{js,jsx}"],
-      exclude: ["src/tests/**", "src/mocks/**", "src/main.jsx"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/tests/**", "src/mocks/**", "src/main.tsx"],
       thresholds: {
         lines:      70,
         branches:   70,
