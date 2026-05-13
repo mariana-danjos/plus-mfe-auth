@@ -4,7 +4,7 @@
 
 Microfrontend de autenticação do projeto **Plus**.
 
-Expõe páginas de login/cadastro, contexto de autenticação e tema via **Module Federation**, consumidos pelo `plus-shell`. Construído com React 18 + Vite 5. Pode rodar isoladamente (modo standalone) ou como remote dentro de um host.
+Expõe páginas de login/cadastro, contexto de autenticação e tema via **Module Federation**, consumidos pelo `plus-shell`. Construído com React 18 + Vite 5 + TypeScript. Pode rodar isoladamente (modo standalone) ou como remote dentro de um host.
 
 ---
 
@@ -40,7 +40,8 @@ Expõe páginas de login/cadastro, contexto de autenticação e tema via **Modul
 | Zod | 4 | Validação de schemas |
 | Vitest + Testing Library + MSW | 4 / 16 / 2 | Testes + mocks HTTP |
 | `@vitest/coverage-v8` | 4 | Cobertura |
-| ESLint 9 + plugins React | — | Lint (flat config) |
+| TypeScript | 5 | Tipagem estática |
+| ESLint 9 + `typescript-eslint` + plugins React | — | Lint (flat config) |
 
 ---
 
@@ -73,7 +74,8 @@ Em modo standalone, o app monta um router próprio (`/login`, `/signup`) usando 
 | `npm run test` | Vitest em modo watch |
 | `npm run test:run` | Vitest single-run |
 | `npm run coverage` | Vitest + cobertura (threshold ≥ 70%) |
-| `npm run lint` | ESLint sobre `src/**/*.{js,jsx}` |
+| `npm run lint` | ESLint sobre `src/**/*.{ts,tsx}` |
+| `npm run typecheck` | `tsc --noEmit` (verificação de tipos) |
 
 ---
 
@@ -95,10 +97,10 @@ http://localhost:4001/assets/remoteEntry.js
 
 | Módulo MF | Arquivo | Export |
 |---|---|---|
-| `./LoginPage` | `src/pages/LoginPage.jsx` | `default` |
-| `./SignupPage` | `src/pages/SignupPage.jsx` | `default` + `ROLE_OPTIONS` |
-| `./AuthContext` | `src/context/AuthContext.jsx` | `AuthProvider` + `useAuth` |
-| `./theme` | `src/theme.js` | `theme`, `C`, `FONT_IMPORT`, `gradientBtn` |
+| `./LoginPage` | `src/pages/LoginPage.tsx` | `default` |
+| `./SignupPage` | `src/pages/SignupPage.tsx` | `default` + `ROLE_OPTIONS` |
+| `./AuthContext` | `src/context/AuthContext.tsx` | `AuthProvider` + `useAuth` |
+| `./theme` | `src/theme.ts` | `theme`, `C`, `FONT_IMPORT`, `gradientBtn` |
 
 ### `./LoginPage`
 
@@ -194,7 +196,7 @@ function MeuComponente() {
 | Propriedade | Tipo | Descrição |
 |---|---|---|
 | `isAuthenticated` | `boolean` | `true` quando há sessão ativa |
-| `user` | `object \| null` | Payload do JWT decodificado (`id`, `email`, `name`, `roles`) |
+| `user` | `User \| null` | Dados do usuário retornados pela API (`name`, `email`, `roles?`) |
 | `token` | `string \| null` | Access token JWT bruto |
 | `loading` | `boolean` | `true` durante chamadas assíncronas |
 | `error` | `string \| null` | Última mensagem de erro de autenticação |
@@ -241,6 +243,7 @@ export default defineConfig({
         "react", "react-dom", "react-router-dom",
         "@mui/material", "@mui/icons-material",
         "@emotion/react", "@emotion/styled",
+        "react-hook-form", "zod",
       ],
     }),
   ],
@@ -287,30 +290,31 @@ export default function Shell() {
 
 ```
 src/
-├── main.jsx                  # Entry standalone (ThemeProvider + App)
-├── App.jsx                   # Router standalone (/login, /signup)
-├── theme.js                  # exposto como ./theme
+├── main.tsx                  # Entry standalone (ThemeProvider + App)
+├── App.tsx                   # Router standalone (/login, /signup)
+├── theme.ts                  # exposto como ./theme
+├── vite-env.d.ts             # Tipos do Vite
 ├── pages/
-│   ├── LoginPage.jsx         # exposto como ./LoginPage
-│   └── SignupPage.jsx        # exposto como ./SignupPage
+│   ├── LoginPage.tsx         # exposto como ./LoginPage
+│   └── SignupPage.tsx        # exposto como ./SignupPage
 ├── context/
-│   └── AuthContext.jsx       # exposto como ./AuthContext
+│   └── AuthContext.tsx       # exposto como ./AuthContext
 ├── mocks/
-│   ├── handlers.js           # MSW handlers (/auth/login, /auth/signup, /auth/refresh, /auth/logout)
-│   └── server.js             # setupServer(...handlers)
+│   ├── handlers.ts           # MSW handlers (/auth/login, /auth/signup, /auth/refresh, /auth/logout)
+│   └── server.ts             # setupServer(...handlers)
 └── tests/
-    ├── setup.js              # Boot MSW + mock localStorage
-    ├── LoginPage.test.jsx
-    ├── SignupPage.test.jsx
-    ├── AuthContext.test.jsx
-    └── theme.test.jsx
+    ├── setup.ts              # Boot MSW + mock localStorage
+    ├── LoginPage.test.tsx
+    ├── SignupPage.test.tsx
+    ├── AuthContext.test.tsx
+    └── theme.test.tsx
 ```
 
 ---
 
 ## Tema e design system
 
-Paleta principal exportada em `theme.js`:
+Paleta principal exportada em `theme.ts`:
 
 | Token | Cor | Uso |
 |---|---|---|
@@ -331,25 +335,25 @@ Paleta principal exportada em `theme.js`:
 
 ## Testes
 
-Configurados no `vite.config.js`:
+Configurados no `vite.config.ts`:
 
-```js
+```ts
 test: {
   environment: "jsdom",
   globals: true,
-  setupFiles: ["./src/tests/setup.js"],
+  setupFiles: ["./src/tests/setup.ts"],
   css: true,
   coverage: {
     provider: "v8",
     reporter: ["text", "lcov", "html"],
-    include: ["src/**/*.{js,jsx}"],
-    exclude: ["src/tests/**", "src/mocks/**", "src/main.jsx"],
+    include: ["src/**/*.{ts,tsx}"],
+    exclude: ["src/tests/**", "src/mocks/**", "src/main.tsx"],
     thresholds: { lines: 70, branches: 70, functions: 70, statements: 70 },
   },
 }
 ```
 
-**Setup (`src/tests/setup.js`):**
+**Setup (`src/tests/setup.ts`):**
 
 - `@testing-library/jest-dom` para matchers.
 - Boot do MSW (`beforeAll` / `afterEach` / `afterAll`) com `onUnhandledRequest: "error"`.
@@ -359,10 +363,10 @@ test: {
 
 | Arquivo | Casos | Cobre |
 |---|---|---|
-| `AuthContext.test.jsx` | 7 | Estado inicial, login, logout, refresh, expiração, erro fora do provider |
-| `LoginPage.test.jsx` | 10 | Render, validações Zod, toggle senha, submit, erros da API, loading |
-| `SignupPage.test.jsx` | 8 | Render, validação por campo, indicador de força, sucesso, duplicado, payload |
-| `theme.test.jsx` | 1 | Paleta e tipografia |
+| `AuthContext.test.tsx` | 7 | Estado inicial, login, logout, refresh, expiração, erro fora do provider |
+| `LoginPage.test.tsx` | 9 | Render, validações Zod, toggle senha, submit, erros da API, loading |
+| `SignupPage.test.tsx` | 11 | Render, validação por campo, indicador de força, sucesso, duplicado, payload |
+| `theme.test.tsx` | 1 | Paleta e tipografia |
 
 ```bash
 npm run coverage
@@ -377,6 +381,7 @@ ESLint 9.x com **flat config** (`eslint.config.mjs`).
 Presets:
 
 - `@eslint/js:recommended`
+- `typescript-eslint:recommended`
 - `eslint-plugin-react/recommended`
 - `eslint-plugin-react-hooks/recommended`
 
@@ -384,7 +389,7 @@ Regras desabilitadas / customizadas:
 
 - `react/react-in-jsx-scope: off` — React 17+ JSX transform não precisa de `import React`.
 - `react/prop-types: off` — não usamos PropTypes.
-- `no-unused-vars`: error, ignora identificadores prefixados com `_`.
+- `no-unused-vars: off` — substituída por `@typescript-eslint/no-unused-vars` (error, ignora identificadores prefixados com `_`).
 
 Ignorados: `dist/`, `coverage/`, `node_modules/`, `src/mocks/`.
 
@@ -414,7 +419,7 @@ test  ─┼─→ build ──→ docker
 | `build` | `npm ci` → `npm run build` → artifact `mfe-auth-dist` (1 d) | 10 min |
 | `docker` | Baixa `mfe-auth-dist` para `dist/`, roda `docker/build-push-action@v7` com `push: false, load: true` | 10 min |
 
-O job `docker` usa artifact passing porque o `Dockerfile` espera o `dist/` já buildado (não faz build interno).
+O job `docker` baixa o artifact do build apenas para acelerar a etapa; o `Dockerfile` é multi-stage e também consegue rodar o build internamente a partir do código-fonte.
 
 Configurações:
 
@@ -442,13 +447,20 @@ act pull_request
 
 ## Docker
 
-O `Dockerfile` espera o `dist/` já gerado (build feito fora do container):
+O `Dockerfile` é multi-stage: o primeiro estágio instala dependências e roda `npm run build`; o segundo serve o `dist/` resultante via `vite preview`:
 
 ```dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+COPY . .
+RUN npm run build
+
 FROM node:20-alpine
 WORKDIR /app
 RUN npm install -g vite
-COPY dist ./dist
+COPY --from=build /app/dist ./dist
 EXPOSE 4001
 CMD ["vite", "preview", "--port", "4001", "--host"]
 ```
@@ -456,7 +468,6 @@ CMD ["vite", "preview", "--port", "4001", "--host"]
 Build local:
 
 ```bash
-npm run build
 docker build -t plus-mfe-auth:dev .
 docker run -p 4001:4001 plus-mfe-auth:dev
 ```
