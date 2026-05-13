@@ -1,8 +1,13 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+COPY . .
+RUN npm run build
+
 FROM node:20-alpine
 WORKDIR /app
 RUN npm install -g vite
-# Esperamos que o build seja feito localmente (npm run build)
-# e o dist/ seja copiado para o container
-COPY dist ./dist
+COPY --from=build /app/dist ./dist
 EXPOSE 4001
 CMD ["vite", "preview", "--port", "4001", "--host"]
