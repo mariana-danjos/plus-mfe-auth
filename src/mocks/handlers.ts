@@ -1,11 +1,13 @@
 import { http, HttpResponse } from "msw";
 
+type LoginBody = { email: string; password: string };
+type SignupBody = { email: string; password: string; name: string; password_confirm?: string; role?: string };
+
 const API = "http://localhost:3001";
 
 export const handlers = [
-  // Login
   http.post(`${API}/auth/login`, async ({ request }) => {
-    const { email, password } = await request.json();
+    const { email, password } = (await request.json()) as LoginBody;
     if (email === "user@plus.com" && password === "Valid@123") {
       return HttpResponse.json({
         token: "mock.jwt.token",
@@ -19,9 +21,8 @@ export const handlers = [
     );
   }),
 
-  // Signup
   http.post(`${API}/auth/signup`, async ({ request }) => {
-    const { email } = await request.json();
+    const { email } = (await request.json()) as SignupBody;
     if (email === "duplicate@plus.com") {
       return HttpResponse.json(
         { error: { code: "EMAIL_TAKEN", message: "E-mail já cadastrado." } },
@@ -35,7 +36,6 @@ export const handlers = [
     });
   }),
 
-  // Refresh
   http.post(`${API}/auth/refresh`, () => {
     return HttpResponse.json({
       token: "mock.jwt.refreshed",
@@ -44,7 +44,6 @@ export const handlers = [
     });
   }),
 
-  // Logout
   http.post(`${API}/auth/logout`, () => {
     return HttpResponse.json({ ok: true });
   }),

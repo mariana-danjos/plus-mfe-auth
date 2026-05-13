@@ -3,16 +3,16 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "../mocks/server";
 
 const storage = (() => {
-  let data = {};
+  let data: Record<string, string> = {};
   return {
-    getItem: (key) => (key in data ? data[key] : null),
-    setItem: (key, value) => {
+    getItem: (key: string): string | null => (key in data ? data[key] : null),
+    setItem: (key: string, value: unknown): void => {
       data[key] = String(value);
     },
-    removeItem: (key) => {
+    removeItem: (key: string): void => {
       delete data[key];
     },
-    clear: () => {
+    clear: (): void => {
       data = {};
     },
   };
