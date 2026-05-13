@@ -1,13 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
 import { AuthProvider } from "../context/AuthContext";
 import SignupPage from "../pages/SignupPage";
+import type { ReactNode } from "react";
 
-const Wrapper = ({ children }) => (
+const Wrapper = ({ children }: { children: ReactNode }) => (
   <AuthProvider>
     <MemoryRouter initialEntries={["/signup"]}>{children}</MemoryRouter>
   </AuthProvider>
@@ -22,7 +23,7 @@ const getRoleSelect = () => screen.getByRole("combobox");
 const getPassword   = () => screen.getByLabelText("Senha de acesso");
 const getConfirm    = () => screen.getByLabelText("Confirmar senha");
 
-const fillValidForm = async (user, overrides = {}) => {
+const fillValidForm = async (user: UserEvent, overrides: Record<string, string> = {}) => {
   const vals = {
     name:            "Ana Gestora",
     email:           "ana@plus.com",
@@ -129,14 +130,14 @@ describe("SignupPage — Criar Conta de Colaborador", () => {
   });
 
   it("envia name e password_confirm no body do signup", async () => {
-    let receivedBody = null;
+    let receivedBody: Record<string, unknown> | null = null;
     server.use(
       http.post("http://localhost:3001/auth/signup", async ({ request }) => {
-        receivedBody = await request.json();
+        receivedBody = await request.json() as Record<string, unknown>;
         return HttpResponse.json({
           token: "t",
           refreshToken: "r",
-          user: { id: "1", email: receivedBody.email, name: receivedBody.name },
+          user: { id: "1", email: receivedBody["email"], name: receivedBody["name"] },
         });
       }),
     );

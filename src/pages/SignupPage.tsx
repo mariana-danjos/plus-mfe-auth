@@ -21,12 +21,15 @@ import BadgeOutlined       from "@mui/icons-material/BadgeOutlined";
 
 import { C, gradientBtn } from "../theme";
 import { useAuth } from "../context/AuthContext";
+import type { Role } from "../context/AuthContext";
 
 // ─── Opções de cargo ──────────────────────────────────────────────────────────
-export const ROLE_OPTIONS = [
-  { value: "vendedor",       label: "Vendedor",       desc: "Acesso a vendas e consulta de estoque" },
-  { value: "gestor",         label: "Gestor",         desc: "Acesso a relatórios e gerenciamento" },
-  { value: "admin",          label: "Administrador",  desc: "Acesso completo ao sistema" },
+type RoleOption = { value: Role; label: string; desc: string };
+
+export const ROLE_OPTIONS: readonly RoleOption[] = [
+  { value: "vendedor", label: "Vendedor",      desc: "Acesso a vendas e consulta de estoque" },
+  { value: "gestor",   label: "Gestor",        desc: "Acesso a relatórios e gerenciamento" },
+  { value: "admin",    label: "Administrador", desc: "Acesso completo ao sistema" },
 ];
 
 // ─── Schema Zod ──────────────────────────────────────────────────────────────
@@ -35,8 +38,7 @@ const signupSchema = z
     name:            z.string().min(2, "Mínimo 2 caracteres"),
     email:           z.string().min(1, "E-mail obrigatório").email("E-mail inválido"),
     role:            z.enum(["vendedor", "gestor", "admin"], {
-                       required_error: "Selecione um cargo",
-                       invalid_type_error: "Cargo inválido",
+                       error: "Selecione um cargo",
                      }),
     password:        z.string()
                        .min(8,            "Mínimo 8 caracteres")
@@ -50,25 +52,30 @@ const signupSchema = z
     path:    ["passwordConfirm"],
   });
 
+type SignupFormData = z.infer<typeof signupSchema>;
+
 // ─── Força da Senha ───────────────────────────────────────────────────────────
-function analyzePassword(pwd) {
+type PwdAnalysis = { score: number; label: string; color: string; tips: string[] };
+
+function analyzePassword(pwd: string): PwdAnalysis {
   if (!pwd) return { score: 0, label: "", color: "transparent", tips: [] };
   let score = 0;
-  const tips = [];
+  const tips: string[] = [];
   if (pwd.length >= 8)           score++; else tips.push("Mínimo 8 caracteres");
   if (/[A-Z]/.test(pwd))         score++; else tips.push("Uma letra maiúscula");
   if (/[0-9]/.test(pwd))         score++; else tips.push("Um número");
   if (/[^A-Za-z0-9]/.test(pwd))  score++; else tips.push("Um símbolo especial");
-  const map = {
+  const map: Record<number, { label: string; color: string }> = {
     1: { label: "Fraca",     color: "#DC2626" },
     2: { label: "Razoável",  color: "#D97706" },
     3: { label: "Boa",       color: C.navyLight },
     4: { label: "Forte",     color: C.green },
   };
-  return { score, ...(map[score] ?? {}), tips };
+  const { label = "", color = "transparent" } = map[score] ?? {};
+  return { score, label, color, tips };
 }
 
-function PasswordStrength({ password }) {
+function PasswordStrength({ password }: { password: string }) {
   const { score, label, color, tips } = useMemo(() => analyzePassword(password), [password]);
   if (!password) return null;
   return (
@@ -105,7 +112,13 @@ function PasswordStrength({ password }) {
 }
 
 // ─── Tela de Sucesso ──────────────────────────────────────────────────────────
-function SuccessScreen({ _name, email, role, navigate }) {
+type SuccessScreenProps = {
+  email: string;
+  role: Role | "";
+  navigate: (path: string) => void;
+};
+
+function SuccessScreen({ email, role, navigate }: SuccessScreenProps) {
   const roleLabel = ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role;
   return (
     <Grow in timeout={400}>
@@ -252,11 +265,11 @@ function SystemPanel() {
 export default function SignupPage() {
   const navigate     = useNavigate();
   const { signup }   = useAuth();
-  const [showPwd, setShowPwd]         = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [apiError, setApiError]       = useState(null);
-  const [success, setSuccess]         = useState(false);
-  const [mounted, setMounted]         = useState(false);
+  const [showPwd, setShowPwd]         = useState<boolean>(false);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
+  const [apiError, setApiError]       = useState<string | null>(null);
+  const [success, setSuccess]         = useState<boolean>(false);
+  const [mounted, setMounted]         = useState<boolean>(false);
 
   const {
     control,
@@ -264,11 +277,11 @@ export default function SignupPage() {
     watch,
     reset,
     formState: { errors, isSubmitting, isValid },
-  } = useForm({
+  } = useForm<SignupFormData>({
     resolver:      zodResolver(signupSchema),
     mode:          "all",
     defaultValues: {
-      name: "", email: "", role: "",
+      name: "", email: "", role: "" as unknown as Role,
       password: "", passwordConfirm: "",
     },
   });
@@ -282,7 +295,7 @@ export default function SignupPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const onSubmit = async ({ name, email, role, password, passwordConfirm }) => {
+  const onSubmit = async ({ name, email, role, password, passwordConfirm }: SignupFormData) => {
     setApiError(null);
     try {
       await signup({
@@ -294,7 +307,7 @@ export default function SignupPage() {
       });
       setSuccess(true);
     } catch (err) {
-      setApiError(err.message);
+      setApiError(err instanceof Error ? err.message : "Erro ao criar conta.");
     }
   };
 
@@ -342,7 +355,6 @@ export default function SignupPage() {
 
               {success ? (
                 <SuccessScreen
-                  name={watch("name")}
                   email={watch("email")}
                   role={roleValue}
                   navigate={(path) => {
