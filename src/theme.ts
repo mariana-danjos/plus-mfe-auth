@@ -2,19 +2,19 @@ import { createTheme, alpha } from "@mui/material/styles";
 import type { SxProps, Theme } from "@mui/material/styles";
 
 export const C = {
-  canvas:    "#F5F6FA",
-  navy:      "#0F2554",
-  navyLight: "#1E40AF",
-  navyMid:   "#1E3A8A",
-  green:     "#16A34A",
-  greenLight:"#22C55E",
-  ink:       "#111827",
-  muted:     "#6B7280",
-  border:    "#E5E7EB",
-  fieldBg:   "#FFFFFF",
-  error:     "#DC2626",
-  surface:   "#F9FAFB",
-  badge:     "#EFF6FF",
+  canvas:    "#F5F6FA",   // fundo neutro frio
+  navy:      "#0F2554",   // azul institucional
+  navyLight: "#1E40AF",   // azul médio
+  navyMid:   "#1E3A8A",   // azul intermediário
+  green:     "#16A34A",   // verde operacional
+  greenLight:"#22C55E",   // verde destaque
+  ink:       "#111827",   // texto principal
+  muted:     "#6B7280",   // texto secundário
+  border:    "#E5E7EB",   // borda
+  fieldBg:   "#FFFFFF",   // fundo input
+  error:     "#DC2626",   // vermelho erro
+  surface:   "#F9FAFB",   // superfície leve
+  badge:     "#EFF6FF",   // fundo badge azul
 } as const;
 
 export const theme: Theme = createTheme({
@@ -97,5 +97,5 @@ export function gradientBtn(sx: SxProps<Theme> = {}): SxProps<Theme> {
     "&:hover": { filter: "brightness(1.08)", boxShadow: `0 4px 16px ${alpha(C.navy, 0.4)}` },
     "&.Mui-disabled": { background: C.border, color: C.muted, boxShadow: "none" },
     ...sx,
-  } as SxProps<Theme>;
+  };
 }
